@@ -86,6 +86,7 @@ describe("db/0295 DPoP jti replay ledger", () => {
     )).rows[0]!;
     expect(row.definer).toBe(true);
     expect(row.cfg).toContain("search_path=pg_catalog, pg_temp");
+    expect(row.pub).toBe(false);
     expect(row.app).toBe(true);
   });
 });
