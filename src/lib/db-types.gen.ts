@@ -829,6 +829,11 @@ export interface PublicDomainClaimsRow {
   "created_at": string | Date;
 }
 
+export interface PublicDpopJtiReplaysRow {
+  "jti_hash": string;
+  "expires_at": string | Date;
+}
+
 export interface PublicEmailAliasesRow {
   "id": string;
   "user_id": string;
@@ -2915,6 +2920,7 @@ export interface DbTables {
   "public.custom_domains": PublicCustomDomainsRow;
   "public.didit_monthly_usage": PublicDiditMonthlyUsageRow;
   "public.domain_claims": PublicDomainClaimsRow;
+  "public.dpop_jti_replays": PublicDpopJtiReplaysRow;
   "public.email_aliases": PublicEmailAliasesRow;
   "public.entitlement_overrides": PublicEntitlementOverridesRow;
   "public.ephemeral_statuses": PublicEphemeralStatusesRow;
