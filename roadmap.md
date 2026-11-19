@@ -498,7 +498,7 @@
 - [x] Sign page: envelope hash via crypto worker (sign.envelope_sha256) + guard test
 - [x] DPoP: dual-layer jti replay (in-memory + db/0295 dpop_jti_replays via rout_dpop_jti_claim)
 - [ ] Owner: apply db/0294 then db/0295 on Neon with scripts/migration-rollout.ts (see HANDOVER appendix 2026-11-19); Neon is at 0293
-- [ ] Full vitest run, report failures
+- [x] Full vitest run 2026-11-19: 3,895 passed, 9 skipped, 0 failed
 - [x] docs/HANDOVER.md appendix + roadmap synced (code level 0295, Neon 0293)
 - [x] Deleted preview test account lovable-signin-test-20261119@example.com (2026-11-19)
 - [x] Deleted the 17 older test accounts in Neon (2026-11-19)
