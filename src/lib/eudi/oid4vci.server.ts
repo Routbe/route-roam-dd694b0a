@@ -12,7 +12,7 @@ import { b64uEncode } from "@/lib/support/hybrid-signature";
 import { isPublicJwk, parseJws, verifyJws, type PublicJwk } from "./jose";
 import { issueSdJwtVc, VERIFIED_HUMAN_CONFIG, VERIFIED_HUMAN_VCT, verifiedHumanClaims } from "./sd-jwt-vc";
 import { statusListUri } from "./status-list.server";
-import { checkDpopProof, DPOP_ALGS, JtiReplayCache } from "./dpop";
+import { checkDpopProof, DPOP_ALGS, DualLayerReplayGuard, JtiReplayCache, ReplayStoreUnavailable } from "./dpop";
 
 export const PRE_AUTH_GRANT = "urn:ietf:params:oauth:grant-type:pre-authorized_code";
 export const PROOF_TYP = "openid4vci-proof+jwt";
@@ -24,8 +24,21 @@ async function sha256Hex(text: string): Promise<string> {
   const d = new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(text)));
   return Array.from(d, (b) => b.toString(16).padStart(2, "0")).join("");
 }
-/** Per-instance DPoP jti replay cache (60 s window). */
-const dpopReplay = new JtiReplayCache();
+/**
+ * Shared layer of the DPoP replay guard: one row per (thumbprint, jti) hash in
+ * public.dpop_jti_replays (db/0295), claimed atomically on the database clock, so a proof used on
+ * one instance is refused on every other. Without 0295 the endpoints refuse (fail closed).
+ */
+async function claimSharedJti(jtiHash: string, holdSeconds: number): Promise<boolean> {
+  const { hasSchemaFeature } = await import("@/lib/schema-features.server");
+  if (!(await hasSchemaFeature("0295"))) throw new ReplayStoreUnavailable("0295 missing");
+  const { sql } = await import("@/lib/neon");
+  const rows = (await sql`select public.rout_dpop_jti_claim(${jtiHash}, ${holdSeconds}) as ok`) as { ok: boolean }[];
+  return rows[0]?.ok === true;
+}
+/** DPoP jti replay guard: per-instance cache (layer 1) + shared database ledger (layer 2). */
+const dpopReplay = new DualLayerReplayGuard(new JtiReplayCache(), claimSharedJti);
+const replayDown = { ok: false, status: 503, error: "temporarily_unavailable", description: "Proof checking is not available right now." } as const;
 export const TOKEN_PATH = "/api/public/oid4vci/token";
 export const CREDENTIAL_PATH = "/api/public/oid4vci/credential";
 const boundTokenHash = (token: string, jkt: string) => sha256Hex(`${token}.${jkt}`);
@@ -150,6 +163,7 @@ export type TokenResult =
 export async function redeemPreAuthorizedCode(form: URLSearchParams, dpop: DpopRequest): Promise<TokenResult> {
   const proof = await dpopGate(dpop, TOKEN_PATH);
   if (!proof.ok) {
+    if (proof.error === "replay_store_unavailable") return replayDown;
     return proof.error === "use_dpop_nonce"
       ? { ok: false, status: 400, error: "use_dpop_nonce", description: "Retry with the server nonce from the DPoP-Nonce header." }
       : { ok: false, status: 401, error: "invalid_dpop_proof", description: "A valid DPoP proof is required." };
@@ -199,6 +213,7 @@ export async function issueCredential(authorization: string | null, body: unknow
   if (!token) return { ok: false, status: 401, error: "invalid_dpop_proof", description: "A DPoP-bound access token is required." };
   const proofOfPossession = await dpopGate({ ...dpop, iss }, CREDENTIAL_PATH, token);
   if (!proofOfPossession.ok) {
+    if (proofOfPossession.error === "replay_store_unavailable") return replayDown;
     return proofOfPossession.error === "use_dpop_nonce"
       ? { ok: false, status: 401, error: "use_dpop_nonce", description: "Retry with the server nonce from the DPoP-Nonce header." }
       : { ok: false, status: 401, error: "invalid_dpop_proof", description: "A valid DPoP proof is required." };
