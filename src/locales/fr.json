@@ -2038,6 +2038,7 @@
   "profile.sealedUnavailable": "Ce profil n'accepte pas de rendez-vous pour le moment.",
   "profile.sealedPastDate": "Choisissez une date dans le futur.",
   "profile.supporter.label": "Soutien ROUT",
+  "profile.supporter.body": "Cette personne soutient ROUT financièrement. La couronne ne dit rien de son identité : seul le badge bleu l'indique.",
   "wsSupport.none.title": "Pas de page de soutien",
   "wsSupport.none.body": "L’espace {{slug}} n’a pas (encore) de page de soutien active.",
   "wsSupport.title": "Soutenir {{name}}",

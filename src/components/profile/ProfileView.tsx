@@ -557,10 +557,10 @@ export function ProfileView({
               handle={profile.username ?? null}
             />
           )}
-          {showSupporter && <SupporterCrownBadge color="var(--supporter-gold)" />}
+          {showSupporter && <SupporterCrownBadge color="var(--supporter-gold)" cardBg={t.card} cardBorder={t.border} textColor={t.text} mutedColor={t.muted} />}
           {/* Donors: the crown appears only after the crypto worker verified their supporter credential. */}
           {!showSupporter && !free && !publicPath?.startsWith("/w/") && prefs.supporterBadgeVisible !== false && profile.username && (
-            <VerifiedSupporterCrown handle={profile.username} />
+            <VerifiedSupporterCrown handle={profile.username} cardBg={t.card} cardBorder={t.border} textColor={t.text} mutedColor={t.muted} />
           )}
           </span>
           {earlyBeliever && (

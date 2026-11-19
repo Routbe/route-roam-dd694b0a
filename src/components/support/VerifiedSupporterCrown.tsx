@@ -8,7 +8,7 @@ import { SupporterCrownBadge } from "@/components/profile/SupporterCrownBadge";
  * member's SD-JWT supporter credential (issuer signature, disclosures, expiry, handle match).
  * A missing, expired or tampered credential renders nothing.
  */
-export function VerifiedSupporterCrown({ handle, className }: { handle: string; className?: string }) {
+export function VerifiedSupporterCrown({ handle, className, ...card }: { handle: string; className?: string; cardBg?: string; cardBorder?: string; textColor?: string; mutedColor?: string }) {
   const fetchPresentation = useServerFn(getSupporterPresentation);
   const [valid, setValid] = useState(false);
 
@@ -32,5 +32,5 @@ export function VerifiedSupporterCrown({ handle, className }: { handle: string; 
     };
   }, [handle, fetchPresentation]);
 
-  return valid ? <SupporterCrownBadge color="var(--supporter-gold)" className={className} /> : null;
+  return valid ? <SupporterCrownBadge color="var(--supporter-gold)" className={className} {...card} /> : null;
 }

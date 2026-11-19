@@ -2038,6 +2038,7 @@
   "profile.sealedUnavailable": "Dit profiel neemt momenteel geen afspraken aan.",
   "profile.sealedPastDate": "Kies een datum in de toekomst.",
   "profile.supporter.label": "ROUT Supporter",
+  "profile.supporter.body": "Deze persoon steunt ROUT financieel. De kroon zegt niets over wie iemand is: identiteit toont alleen het blauwe vinkje.",
   "wsSupport.none.title": "Geen steunpagina",
   "wsSupport.none.body": "Werkruimte {{slug}} heeft (nog) geen actieve steunpagina.",
   "wsSupport.title": "Steun {{name}}",
