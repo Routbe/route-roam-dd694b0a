@@ -496,3 +496,8 @@
 - [ ] Dagelijkse cleanup (`/api/public/cron/cleanup-assets`) en de Omni-worker in `worker/` hebben op deze hosting nog geen uitvoerder
 
 - [ ] Owner: delete preview test account lovable-signin-test-20261119@example.com (id cd595dcb-6fb3-4826-b823-ccd452eeacb9, created 2026-11-19, live database)
+- [ ] Sign page: envelope hash via crypto worker (sign.envelope_sha256) + guard test
+- [ ] DPoP: dual-layer jti replay (in-memory + db/0295 dpop_jti_replays via rout_dpop_jti_claim); Neon apply = owner via migration-rollout
+- [ ] Full vitest run, report failures
+- [ ] docs/HANDOVER.md appendix + roadmap synced (code level 0295, Neon 0293)
+- [ ] Delete preview test account(s) on owner request
