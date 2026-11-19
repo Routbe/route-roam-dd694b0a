@@ -500,4 +500,4 @@
 - [ ] Full vitest run, report failures
 - [ ] docs/HANDOVER.md appendix + roadmap synced (code level 0295, Neon 0293)
 - [x] Deleted preview test account lovable-signin-test-20261119@example.com (2026-11-19)
-- [ ] 17 older test-looking accounts in Neon (.lovable/reviews/test-accounts.md): delete only after owner confirms
+- [ ] Delete the 17 older test accounts in Neon (.lovable/reviews/test-accounts.md) — owner said yes 2026-11-19
