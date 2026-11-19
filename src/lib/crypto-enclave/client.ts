@@ -277,6 +277,11 @@ export const enclave = {
       callEnclave("sign.open", { key, envelope: envelope.slice(), role }, moved(key)),
     /** The link key is transferred and wiped; returns hashes and the sealed "signed" copy only. */
     attest: (key: Uint8Array, envelope: Uint8Array) => callEnclave("sign.attest", { key, envelope: envelope.slice() }, moved(key)),
+    /** Hex SHA-256 of a stored RSG1 envelope; a copy is transferred, so the caller keeps its bytes. */
+    envelopeSha256: (envelope: Uint8Array) => {
+      const e = envelope.slice();
+      return callEnclave("sign.envelope_sha256", { envelope: e }, moved(e));
+    },
   },
   guestVault: {
     /** Passkey output → worker (transferred: the caller's copies are emptied). Use guest-passkey.ts to obtain it. */

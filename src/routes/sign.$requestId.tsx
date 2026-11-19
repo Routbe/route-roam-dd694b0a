@@ -84,8 +84,9 @@ function SignRequestPage() {
     const signedAt = req.signedAt;
     const attestation = req.pqAttestation;
     void (async () => {
-      const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", b64ToBytes(req.signedEnvelope!) as BufferSource));
-      const signedSha256 = Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
+      // The envelope hash is computed in the crypto worker: no WebCrypto on the main thread.
+      const { enclave } = await import("@/lib/crypto-enclave/client");
+      const { sha256: signedSha256 } = await enclave.sign.envelopeSha256(b64ToBytes(req.signedEnvelope!));
       const { verifyPqAttestation } = await import("@/lib/crypto/pq-verify");
       return verifyPqAttestation("sign", [requestId, req.sourceSha256, signedSha256, signedAt], attestation);
     })()
