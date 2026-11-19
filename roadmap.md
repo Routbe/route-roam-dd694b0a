@@ -495,9 +495,11 @@
 - [ ] Eind-tot-eind aanmeldtest met echte passkey of e-maillink — wacht op toestemming voor één testaccount, of eigenaar test zelf
 - [ ] Dagelijkse cleanup (`/api/public/cron/cleanup-assets`) en de Omni-worker in `worker/` hebben op deze hosting nog geen uitvoerder
 
-- [ ] Sign page: envelope hash via crypto worker (sign.envelope_sha256) + guard test
-- [ ] DPoP: dual-layer jti replay (in-memory + db/0295 dpop_jti_replays via rout_dpop_jti_claim); Neon apply = owner via migration-rollout
+- [x] Sign page: envelope hash via crypto worker (sign.envelope_sha256) + guard test
+- [x] DPoP: dual-layer jti replay (in-memory + db/0295 dpop_jti_replays via rout_dpop_jti_claim)
+- [ ] Owner: apply db/0294 then db/0295 on Neon with scripts/migration-rollout.ts (see HANDOVER appendix 2026-11-19); Neon is at 0293
 - [ ] Full vitest run, report failures
-- [ ] docs/HANDOVER.md appendix + roadmap synced (code level 0295, Neon 0293)
+- [x] docs/HANDOVER.md appendix + roadmap synced (code level 0295, Neon 0293)
 - [x] Deleted preview test account lovable-signin-test-20261119@example.com (2026-11-19)
-- [ ] Delete the 17 older test accounts in Neon (.lovable/reviews/test-accounts.md) — owner said yes 2026-11-19
+- [x] Deleted the 17 older test accounts in Neon (2026-11-19)
+- [ ] Account purge cron fails on Neon: rout_app lacks SELECT/DELETE on oauth_email_deliveries + identity_link_events (owner decision: definer helper or grant)
