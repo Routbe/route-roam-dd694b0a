@@ -485,3 +485,12 @@
 - [ ] HANDOVER-appendix bijwerken na groene suite (wacht: enclave.test.ts faalt op crypto.subtle in src/routes/sign.$requestId.tsx, bestaande code)
 - [x] Verplichte DPoP (RFC 9449) op OID4VCI token + credential, 60 s jti-replaycache, metadata ES256/Ed25519
 - [x] Test: status-list-JWT verankerd aan gepubliceerde sleutel (kid)
+
+## ROUT-import in Lovable (2026-11-19)
+- [x] Code uit github.com/Routbe/route-roam-31160c5a overgenomen: TanStack-routes, providers, assets, MDX-catalogus en db/ blijven ongewijzigd
+- [x] Besluit eigenaar: gegevens blijven in Neon, geen Lovable Cloud
+- [x] DATABASE_URL en BETTER_AUTH_SECRET veilig ingesteld (nooit via de chat): health-probe `operational`, schema 0294, aanmeldscherm biedt nu passkey, e-maillink en wachtwoord zonder waarschuwing
+- [ ] Bevestigen: draait deze preview op productie-Neon of op een aparte kopie (eigenaar)
+- [ ] E-mailbezorging (SMTP_PASS_AUTH / SMTP_PASS_SYSTEM), bestandsopslag (S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, emmers) en betalingen (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET) nog niet ingesteld
+- [ ] Eind-tot-eind aanmeldtest met echte passkey of e-maillink — wacht op toestemming voor één testaccount, of eigenaar test zelf
+- [ ] Dagelijkse cleanup (`/api/public/cron/cleanup-assets`) en de Omni-worker in `worker/` hebben op deze hosting nog geen uitvoerder
