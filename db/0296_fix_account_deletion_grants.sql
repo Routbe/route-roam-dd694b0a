@@ -11,7 +11,7 @@
 -- The identity-event chain stays append-only, except for rows of an account whose purge is due
 -- and that this transaction explicitly marked for erasure through the function below.
 create or replace function public.identity_event_chain() returns trigger
-language plpgsql set search_path = pg_catalog, public as $$
+language plpgsql set search_path = pg_catalog, pg_temp as $$
 declare owner_id uuid;
 begin
   if TG_OP = 'DELETE' then
