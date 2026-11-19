@@ -494,3 +494,5 @@
 - [ ] E-mailbezorging (SMTP_PASS_AUTH / SMTP_PASS_SYSTEM), bestandsopslag (S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, emmers) en betalingen (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET) nog niet ingesteld
 - [ ] Eind-tot-eind aanmeldtest met echte passkey of e-maillink — wacht op toestemming voor één testaccount, of eigenaar test zelf
 - [ ] Dagelijkse cleanup (`/api/public/cron/cleanup-assets`) en de Omni-worker in `worker/` hebben op deze hosting nog geen uitvoerder
+
+- [ ] Owner: delete preview test account lovable-signin-test-20261119@example.com (id cd595dcb-6fb3-4826-b823-ccd452eeacb9, created 2026-11-19, live database)
