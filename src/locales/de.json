@@ -2038,6 +2038,7 @@
   "profile.sealedUnavailable": "Dieses Profil nimmt im Moment keine Termine an.",
   "profile.sealedPastDate": "Wähle ein Datum in der Zukunft.",
   "profile.supporter.label": "ROUT-Unterstützer",
+  "profile.supporter.body": "Diese Person unterstützt ROUT finanziell. Die Krone sagt nichts über die Identität: nur das blaue Häkchen zeigt sie.",
   "wsSupport.none.title": "Keine Unterstützungsseite",
   "wsSupport.none.body": "Der Arbeitsbereich {{slug}} hat (noch) keine aktive Unterstützungsseite.",
   "wsSupport.title": "{{name}} unterstützen",

@@ -2038,6 +2038,7 @@
   "profile.sealedUnavailable": "This profile is not accepting appointments right now.",
   "profile.sealedPastDate": "Pick a date in the future.",
   "profile.supporter.label": "ROUT Supporter",
+  "profile.supporter.body": "This person supports ROUT financially. The crown says nothing about who someone is: only the blue mark shows identity.",
   "wsSupport.none.title": "No support page",
   "wsSupport.none.body": "Workspace {{slug}} has no active support page (yet).",
   "wsSupport.title": "Support {{name}}",

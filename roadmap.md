@@ -503,3 +503,7 @@
 - [x] Deleted preview test account lovable-signin-test-20261119@example.com (2026-11-19)
 - [x] Deleted the 17 older test accounts in Neon (2026-11-19)
 - [ ] Account purge cron fails on Neon: rout_app lacks SELECT/DELETE on oauth_email_deliveries + identity_link_events (owner decision: definer helper or grant)
+
+- [x] db/0296: account purge clears relay deliveries + identity history via definer helper (replay test green)
+- [ ] Owner: apply db/0294, 0295, 0296 on Neon with scripts/migration-rollout.ts (blocked: owner GO)
+- [x] Blue mark rosette, clickable crown, page buttons removed, Studio preview 1:1 marks

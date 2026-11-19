@@ -1025,3 +1025,12 @@ On the owner's decision the held-back booking ledger is now `db-pending/0284_boo
   Until both are live, OID4VCI issuance answers 503.
 - Test accounts: on owner request, 18 test accounts were removed from the live database (the preview sign-up check account plus 17 older smoke/test/probe/"ROUT Test Kaart" accounts). 13 had a member account and went through `accountPurgeStatements` with a backdated due row and a signed `purged` audit row; 4 had only sign-in rows. A read-only scan afterwards found no remaining rows for any of them.
 - Live finding, open: `rout_app` has neither SELECT nor DELETE on `public.oauth_email_deliveries` and `public.identity_link_events`, yet `accountPurgeStatements` deletes from both, so `purgeDueDeletions` (cron) rolls back for every due account on Neon. The manual purge above skipped those two statements (their user FK cascades or the transaction rolls back). Fix needs a narrow SECURITY DEFINER purge helper or a grant in a new migration — owner decision.
+
+## Appendix: db/0296 account-deletion helper, blue rosette, crown card, Studio preview (2026-11-19 20:35 UTC, no DDL on Neon)
+- db/0296_fix_account_deletion_grants.sql (SHA-256 4980d8c95a8f85e4b1958c310bf78658963e05d4ce97e746274b68ea48bbdaab). Instead of granting rout_app SELECT/DELETE on every row, `public.rout_identity_records_purge(uuid)` (SECURITY DEFINER, search_path pg_catalog, pg_temp, EXECUTE only rout_app) deletes oauth_email_deliveries and identity_link_events for one account after `rout_purge_due`; identity_event_chain allows a DELETE only for that account in that purge transaction. accountPurgeStatements uses it when the probe finds the function (`identityRecords`), so the purge stays one atomic transaction. Replay test: src/test/migration-0296.test.ts. CODE_SCHEMA_LEVEL = 0296.
+- Owner rollout, in order, each only after the previous is recorded:
+  `bun scripts/migration-rollout.ts 0294_eudi_wallet.sql --after=0293_support_treasury.sql --apply`
+  `bun scripts/migration-rollout.ts 0295_dpop_jti_replays.sql --after=0294_eudi_wallet.sql --apply`
+  `bun scripts/migration-rollout.ts 0296_fix_account_deletion_grants.sql --after=0295_dpop_jti_replays.sql --apply`
+  (the script takes the file name inside db/, not a `db/` path).
+- Profile UI: the blue mark is the rosette (same geometry as badge-svg.ts) in VERIFIED_MARK; the gold crown opens an explanation card; the Profile/Steunpagina button row is gone; name and marks stay on one line; the Studio preview now receives the identity and supporter flags so it matches the saved page.

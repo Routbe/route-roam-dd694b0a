@@ -25,6 +25,7 @@ const MARKERS = {
   "0294": "public.rout_vci_offer_create(text,text,text)",
   /** db/0295_dpop_jti_replays.sql (DPoP jti replay ledger shared by every server instance) */
   "0295": "public.rout_dpop_jti_claim(text,integer)",
+  "0296": "public.rout_identity_records_purge(uuid)",
 } as const;
 export type SchemaFeature = keyof typeof MARKERS;
 

@@ -24,7 +24,6 @@ import { ProfileGuestbook } from "@/components/profile/ProfileGuestbook";
 import { QaStoryRing } from "@/components/qa/QaStoryRing";
 import { ProfileQuestions } from "@/components/profile/ProfileQuestions";
 import { TipJarButton } from "@/components/profile/TipJarButton";
-import { ProfilePageTabs } from "@/components/profile/ProfilePageTabs";
 import { useWireframeMode, WireframeOverlay } from "@/components/profile/WireframeMode";
 import { cn } from "@/lib/utils";
 import {
@@ -535,6 +534,7 @@ export function ProfileView({
           >
             {profile.display_name || `@${profile.username}`}
           </span>
+          <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap" data-testid="name-marks">
           {showBadge && (
             <ProfileBadge
               type={badgeType}
@@ -557,11 +557,12 @@ export function ProfileView({
               handle={profile.username ?? null}
             />
           )}
-          {showSupporter && <SupporterCrownBadge color="var(--supporter-gold)" />}
+          {showSupporter && <SupporterCrownBadge color="var(--supporter-gold)" cardBg={t.card} cardBorder={t.border} textColor={t.text} mutedColor={t.muted} />}
           {/* Donors: the crown appears only after the crypto worker verified their supporter credential. */}
           {!showSupporter && !free && !publicPath?.startsWith("/w/") && prefs.supporterBadgeVisible !== false && profile.username && (
-            <VerifiedSupporterCrown handle={profile.username} />
+            <VerifiedSupporterCrown handle={profile.username} cardBg={t.card} cardBorder={t.border} textColor={t.text} mutedColor={t.muted} />
           )}
+          </span>
           {earlyBeliever && (
             <PioneerBadge
               badgeId={profile.early_believer_id ?? null}
@@ -623,7 +624,6 @@ export function ProfileView({
             </nav>
           );
         })()}
-        {profile.username && <ProfilePageTabs handle={profile.username} theme={t} />}
         {profile.fediverse && <a href={profile.fediverse.url} rel="me noopener noreferrer" target="_blank" className="mt-2 inline-flex max-w-full items-center gap-1.5 text-sm text-foreground">
           <span className="truncate">Mastodon</span>
           {profile.fediverse.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-primary" aria-label="Mastodon-eigendom geverifieerd" />}

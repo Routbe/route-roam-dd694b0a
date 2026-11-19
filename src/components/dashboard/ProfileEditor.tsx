@@ -580,9 +580,14 @@ export function ProfileEditor({ variant = "verified", pageMode = "profile", onPa
       human_linked: verified,
       status: verified ? "active" : "pending",
       verified_legal_name: legalName,
+      // Same identity and supporter flags as the public page, so the marks next to the name match 1:1.
+      legal_identity_verified: diditVerified,
+      is_pro: isProMember,
       display_prefs: prefs,
     }),
     [
+      diditVerified,
+      isProMember,
       user,
       normalized,
       displayName,

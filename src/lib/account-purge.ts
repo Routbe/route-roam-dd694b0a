@@ -16,8 +16,13 @@ export const ANON_BOOKING_PURGE_PROBE = `select to_regprocedure('public.rout_ano
  * retired and detached before the user row goes; their foreign keys are
  * RESTRICT, so a purge without this step fails instead of dropping spent nullifiers.
  */
-export function accountPurgeStatements(userId: string, authId: string, opts: { anonBooking?: boolean } = {}) {
+/** Present once db/0296 is applied: relay deliveries and identity-link history are cleared by a definer. */
+export const IDENTITY_RECORDS_PURGE_PROBE = `select to_regprocedure('public.rout_identity_records_purge(uuid)') is not null as present`;
+const DEFINER_PURGED_TABLES: readonly string[] = ["oauth_email_deliveries", "identity_link_events"];
+
+export function accountPurgeStatements(userId: string, authId: string, opts: { anonBooking?: boolean; identityRecords?: boolean } = {}) {
   const params = [userId];
+  const ownerTables = opts.identityRecords ? PURGE_OWNER_TABLES.filter((t) => !DEFINER_PURGED_TABLES.includes(t)) : PURGE_OWNER_TABLES;
   return [
     { query: `select user_id from public.account_deletions where user_id = $1
         and cancelled_at is null and completed_at is null and purge_after <= now() for update`, params },
@@ -27,7 +32,9 @@ export function accountPurgeStatements(userId: string, authId: string, opts: { a
     { query: `delete from public.profile_subscribers where owner_user_id = $1`, params },
     // Onboarding drafts are closed to the app role; the database re-checks that this deletion is due (db/0238).
     { query: `select public.rout_onboarding_drafts_purge($1::uuid)`, params },
-    ...PURGE_OWNER_TABLES.map((table) => ({ query: `delete from public.${table} where user_id = $1`, params })),
+    // rout_app holds no DELETE on these two; the database re-checks that this deletion is due (db/0296).
+    ...(opts.identityRecords ? [{ query: `select public.rout_identity_records_purge($1::uuid)`, params }] : []),
+    ...ownerTables.map((table) => ({ query: `delete from public.${table} where user_id = $1`, params })),
     // Sign-in codes are closed to the app role; the database re-checks that this deletion is due (db/0226).
     { query: `select public.rout_auth_secrets_purge($1::uuid)`, params },
     { query: `delete from public.merged_auth_account_archive where primary_user_id = $1`, params },
