@@ -13,7 +13,7 @@ import { masterKeyFromMnemonic, newMasterKey } from "@/lib/e2ee/recovery";
 import { loadDeviceKey, saveDeviceKey, workspaceKeyFromMaster, type WorkspaceKey } from "@/lib/e2ee/device-key";
 import { decryptLedgerEvent, generateLedgerKeys, unlockLedgerKey } from "@/lib/ledger/crypto";
 import { wipe, wipeMessage } from "@/lib/crypto/wipe";
-import { newDocumentKey, openDocument, sealDocument, SignEnvelopeError } from "@/lib/sign/sign-envelope";
+import { newDocumentKey, openDocument, sealDocument, SIGN_BUCKET, SIGN_MAX_PLAINTEXT, SignEnvelopeError } from "@/lib/sign/sign-envelope";
 import { sanitizePdf, sha256Hex } from "@/lib/sign/pdf-sanitizer";
 import { BHM_MAX_HASHES, bhmPreimage, isBhmKind } from "@/lib/oauth/blind-hash";
 import { claimSubject } from "@/lib/recovery/pairwise";
@@ -138,6 +138,8 @@ export { EnclaveFailure };
 
 const newHandle = () => b64u.encode(crypto.getRandomValues(new Uint8Array(16)));
 const MAX_TREE_ID_CHARS = 256;
+// Largest RSG1 envelope: magic + IV + padded plaintext bucket(s) + GCM tag, with headroom.
+const SIGN_MAX_ENVELOPE = SIGN_MAX_PLAINTEXT + 2 * SIGN_BUCKET;
 const str = (v: unknown, max = 4096): string => (typeof v === "string" && v.length <= max ? v : fail("invalid_input"));
 const bytes = (v: unknown): Uint8Array =>
   v instanceof Uint8Array && v.buffer instanceof ArrayBuffer ? v : fail("invalid_input");
@@ -1366,6 +1368,16 @@ const coreHandlers: CoreHandlers = {
       throw e;
     } finally {
       wipe(k, plain, clean);
+    }
+  },
+
+  async "sign.envelope_sha256"({ envelope }) {
+    const env = bytes(envelope);
+    try {
+      if (env.length === 0 || env.length > SIGN_MAX_ENVELOPE) return fail("invalid_input");
+      return { sha256: await sha256Hex(env) };
+    } finally {
+      wipe(env);
     }
   },
 

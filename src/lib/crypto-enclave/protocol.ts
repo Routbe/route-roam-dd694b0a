@@ -262,6 +262,11 @@ export interface EnclaveOps {
    */
   "sign.attest": { req: { key: Uint8Array; envelope: Uint8Array }; res: { sourceSha256: string; digest: string; signedEnvelope: Uint8Array } };
   /**
+   * Viewer side: hex SHA-256 of a stored RSG1 envelope (ciphertext, transferred in and wiped), so the
+   * hybrid attestation over the signed record is checked without any main-thread WebCrypto.
+   */
+  "sign.envelope_sha256": { req: { envelope: Uint8Array }; res: { sha256: string } };
+  /**
    * Pedersen commitment C = v·g + r·h (Stap 7b, bulletproofs.ts). value is a
    * bigint in [0, 2^64 - 1]; without `blinding` a fresh 32-octet one is drawn
    * in the engine. The blinding is the secret opening: transferred in, wiped.

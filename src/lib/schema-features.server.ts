@@ -23,6 +23,8 @@ const MARKERS = {
   "0293": "public.rout_support_create(smallint,text,integer,text,text)",
   /** db/0294_eudi_wallet.sql (OID4VCI offers, wallet credential status list, OID4VP requests) */
   "0294": "public.rout_vci_offer_create(text,text,text)",
+  /** db/0295_dpop_jti_replays.sql (DPoP jti replay ledger shared by every server instance) */
+  "0295": "public.rout_dpop_jti_claim(text,integer)",
 } as const;
 export type SchemaFeature = keyof typeof MARKERS;
 

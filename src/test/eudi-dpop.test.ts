@@ -8,9 +8,11 @@ import { ed25519 } from "@noble/curves/ed25519.js";
 import { p256 } from "@noble/curves/nist.js";
 import { b64uEncode } from "@/lib/support/hybrid-signature";
 import { jsonB64u, p256Jwk, type PublicJwk } from "@/lib/eudi/jose";
-import { accessTokenHash, checkDpopProof, JtiReplayCache, jwkThumbprint } from "@/lib/eudi/dpop";
+import { accessTokenHash, checkDpopProof, DualLayerReplayGuard, JtiReplayCache, jtiReplayHash, jwkThumbprint } from "@/lib/eudi/dpop";
 
 const sqlCalls: unknown[][] = [];
+// Shared layer 2 of the replay guard (db/0295), as seen from this server instance.
+const shared = { store: new Set<string>(), claims: [] as unknown[][], down: false };
 vi.mock("@/lib/eudi/keys.server", () => ({
   checkDpopNonce: async (n: unknown) => n === "srv-nonce",
   newDpopNonce: async () => "srv-nonce",
@@ -19,6 +21,13 @@ vi.mock("@/lib/eudi/keys.server", () => ({
 vi.mock("@/lib/schema-features.server", () => ({ hasSchemaFeature: async () => true }));
 vi.mock("@/lib/neon", () => ({
   sql: async (_s: TemplateStringsArray, ...values: unknown[]) => {
+    if (_s.join("?").includes("rout_dpop_jti_claim")) {
+      shared.claims.push(values);
+      if (shared.down) throw new Error("connection refused");
+      const fresh = !shared.store.has(values[0] as string);
+      shared.store.add(values[0] as string);
+      return [{ ok: fresh }];
+    }
     sqlCalls.push(values);
     return [{ r: "ok" }];
   },
@@ -102,8 +111,60 @@ describe("DPoP proof (RFC 9449)", () => {
   });
 });
 
+describe("dual-layer jti replay guard (per-instance cache + shared ledger)", () => {
+  const ledger = () => {
+    const seen = new Set<string>();
+    const calls: string[] = [];
+    return { calls, claim: async (h: string) => (calls.push(h), seen.has(h) ? false : (seen.add(h), true)) };
+  };
+  it("a proof accepted on one instance is refused on every other instance", async () => {
+    const l = ledger();
+    const a = new DualLayerReplayGuard(new JtiReplayCache(), l.claim);
+    const b = new DualLayerReplayGuard(new JtiReplayCache(), l.claim);
+    const p = dpop();
+    expect((await checkDpopProof(p, opts({ replay: a }))).ok).toBe(true);
+    expect(await checkDpopProof(p, opts({ replay: b }))).toEqual({ ok: false, error: "invalid_dpop_proof" });
+  });
+  it("a repeat on the same instance is refused by layer 1 without asking the ledger", async () => {
+    const l = ledger();
+    const g = new DualLayerReplayGuard(new JtiReplayCache(), l.claim);
+    expect(await g.claim("k", "jti-0000000000000001", 0)).toBe(true);
+    expect(await g.claim("k", "jti-0000000000000001", 1)).toBe(false);
+    expect(l.calls).toHaveLength(1);
+  });
+  it("the ledger sees only a 64-hex hash of (thumbprint, jti), held for twice the 60 s window", async () => {
+    const seen: [string, number][] = [];
+    const g = new DualLayerReplayGuard(new JtiReplayCache(), async (h, s) => (seen.push([h, s]), true));
+    await g.claim("thumb", "jti-0000000000000002", 0);
+    expect(seen).toEqual([[jtiReplayHash("thumb", "jti-0000000000000002"), 120]]);
+    expect(seen[0]![0]).toMatch(/^[0-9a-f]{64}$/);
+    expect(jtiReplayHash("thumb", "jti-0000000000000002")).not.toBe(jtiReplayHash("thumb2", "jti-0000000000000002"));
+  });
+  it("an unreachable ledger fails closed, and the proof stays burnt on this instance", async () => {
+    let down = true;
+    const g = new DualLayerReplayGuard(new JtiReplayCache(), async () => {
+      if (down) throw new Error("timeout");
+      return true;
+    });
+    const p = dpop();
+    expect(await checkDpopProof(p, opts({ replay: g }))).toEqual({ ok: false, error: "replay_store_unavailable" });
+    down = false;
+    expect(await checkDpopProof(p, opts({ replay: g }))).toEqual({ ok: false, error: "invalid_dpop_proof" });
+  });
+  it("a nonce retry (use_dpop_nonce) does not consume the jti", async () => {
+    const l = ledger();
+    const g = new DualLayerReplayGuard(new JtiReplayCache(), l.claim);
+    expect(await checkDpopProof(dpop({ payload: { nonce: "stale" } }), opts({ replay: g }))).toEqual({ ok: false, error: "use_dpop_nonce" });
+    expect(l.calls).toHaveLength(0);
+  });
+});
+
 describe("OID4VCI endpoints require DPoP", () => {
-  beforeEach(() => (sqlCalls.length = 0));
+  beforeEach(() => {
+    sqlCalls.length = 0;
+    shared.claims.length = 0;
+    shared.down = false;
+  });
   const form = () => new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:pre-authorized_code", "pre-authorized_code": "c".repeat(43), tx_code: "123456" });
 
   it("token endpoint: no DPoP header = 401 invalid_dpop_proof, nothing reaches the database", async () => {
@@ -119,6 +180,22 @@ describe("OID4VCI endpoints require DPoP", () => {
     const { createHash } = await import("node:crypto");
     expect(sqlCalls[0]![2]).toBe(createHash("sha256").update(`${token}.${jwkThumbprint(edJwk)}`).digest("hex"));
     expect(sqlCalls[0]![2]).not.toBe(createHash("sha256").update(token).digest("hex"));
+  });
+  it("token endpoint: a proof already claimed by another instance is refused with 401", async () => {
+    const { redeemPreAuthorizedCode } = await import("@/lib/eudi/oid4vci.server");
+    const jti = `jti-other-instance-${n++}-abcdef`;
+    shared.store.add(jtiReplayHash(jwkThumbprint(edJwk), jti));
+    const r = await redeemPreAuthorizedCode(form(), { header: dpop({ payload: { jti } }), method: "POST", iss: ISS });
+    expect(r).toMatchObject({ ok: false, status: 401, error: "invalid_dpop_proof" });
+    expect(sqlCalls).toHaveLength(0);
+  });
+  it("token endpoint: an unreachable replay ledger answers 503 and redeems nothing", async () => {
+    shared.down = true;
+    const { redeemPreAuthorizedCode } = await import("@/lib/eudi/oid4vci.server");
+    const r = await redeemPreAuthorizedCode(form(), { header: dpop(), method: "POST", iss: ISS });
+    expect(r).toMatchObject({ ok: false, status: 503, error: "temporarily_unavailable" });
+    expect(shared.claims).toHaveLength(1);
+    expect(sqlCalls).toHaveLength(0);
   });
   it("credential endpoint: a Bearer token is refused with 401 invalid_dpop_proof", async () => {
     const { issueCredential } = await import("@/lib/eudi/oid4vci.server");

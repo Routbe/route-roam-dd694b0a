@@ -8732,6 +8732,48 @@
     },
     {
       "schema": "public",
+      "name": "dpop_jti_replays",
+      "columns": [
+        {
+          "name": "jti_hash",
+          "type": "text",
+          "notNull": true,
+          "default": null,
+          "identity": null,
+          "generated": null
+        },
+        {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "notNull": true,
+          "default": null,
+          "identity": null,
+          "generated": null
+        }
+      ],
+      "constraints": [
+        {
+          "name": "dpop_jti_replays_jti_hash_check",
+          "kind": "c",
+          "def": "CHECK ((jti_hash ~ '^[0-9a-f]{64}$'::text))"
+        },
+        {
+          "name": "dpop_jti_replays_pkey",
+          "kind": "p",
+          "def": "PRIMARY KEY (jti_hash)"
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX dpop_jti_replays_expires_at_idx ON public.dpop_jti_replays USING btree (expires_at)"
+      ],
+      "triggers": [],
+      "rls": true,
+      "forceRls": false,
+      "policies": [],
+      "grants": {}
+    },
+    {
+      "schema": "public",
       "name": "email_aliases",
       "columns": [
         {
@@ -35518,6 +35560,12 @@
       "name": "rout_didit_usage_release",
       "args": "",
       "def": "CREATE OR REPLACE FUNCTION public.rout_didit_usage_release()\n RETURNS void\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'pg_temp'\nAS $function$\n  update public.didit_monthly_usage set success_count = greatest(success_count - 1, 0)\n   where month = pg_catalog.date_trunc('month', pg_catalog.now() at time zone 'UTC')::date\n$function$"
+    },
+    {
+      "schema": "public",
+      "name": "rout_dpop_jti_claim",
+      "args": "p_jti_hash text, p_hold_seconds integer",
+      "def": "CREATE OR REPLACE FUNCTION public.rout_dpop_jti_claim(p_jti_hash text, p_hold_seconds integer)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'pg_temp'\nAS $function$\ndeclare\n  v_claimed boolean;\nbegin\n  if p_jti_hash is null or p_jti_hash !~ '^[0-9a-f]{64}$' or p_hold_seconds is null or p_hold_seconds not between 1 and 600 then\n    raise exception 'invalid dpop jti claim' using errcode = '22023';\n  end if;\n  delete from public.dpop_jti_replays d\n   where d.jti_hash in (select e.jti_hash from public.dpop_jti_replays e where e.expires_at <= now() order by e.expires_at limit 100);\n  insert into public.dpop_jti_replays as r (jti_hash, expires_at)\n       values (p_jti_hash, now() + make_interval(secs => p_hold_seconds))\n  on conflict (jti_hash) do update set expires_at = excluded.expires_at\n   where r.expires_at <= now()\n  returning true into v_claimed;\n  return coalesce(v_claimed, false);\nend;\n$function$"
     },
     {
       "schema": "public",

@@ -4,7 +4,8 @@
  * alg ES256 or Ed25519, an embedded public jwk of the matching key type, a valid signature,
  * htm = the request method, htu = the endpoint URI, iat within 60 s, a valid server nonce, ath =
  * SHA-256 of the access token when one is presented, and a jti never seen before for that key.
- * Pure apart from the injected nonce check and replay cache; server-safe and browser-safe.
+ * Replay: a per-instance cache plus, on the server, a shared store (DualLayerReplayGuard).
+ * Pure apart from the injected nonce check and replay guard; server-safe and browser-safe.
  */
 import { sha256 } from "@noble/hashes/sha2.js";
 import { b64uEncode } from "@/lib/support/hybrid-signature";
@@ -60,7 +61,46 @@ export class JtiReplayCache {
   }
 }
 
-export type DpopCheck = { ok: true; jkt: string; jwk: PublicJwk } | { ok: false; error: "invalid_dpop_proof" | "use_dpop_nonce" };
+/** Anything that records a (key thumbprint, jti) pair once: true = new and now recorded. */
+export interface ReplayGuard {
+  claim(jkt: string, jti: string, now: number): boolean | Promise<boolean>;
+}
+
+/** Thrown by a replay store that cannot answer; the proof is then refused (fail closed). */
+export class ReplayStoreUnavailable extends Error {}
+
+/** Hex SHA-256 of the (thumbprint, jti) pair: the only form a shared replay store ever sees. */
+export function jtiReplayHash(jkt: string, jti: string): string {
+  return Array.from(sha256(enc.encode(`rout.dpop.jti.v1\u0000${jkt}\u0000${jti}`)), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Two layers: the per-instance cache answers repeats on this node without a round trip, then the
+ * shared store (one primary key across every instance, expiry on its own clock) decides. Layer 1
+ * records before layer 2 is asked, so a proof refused or left undecided by layer 2 never passes
+ * here later either. A store failure is a refusal, never a pass.
+ */
+export class DualLayerReplayGuard implements ReplayGuard {
+  constructor(
+    private readonly local: JtiReplayCache,
+    private readonly shared: (jtiHash: string, holdSeconds: number) => Promise<boolean>,
+    private readonly holdSeconds = 2 * DPOP_WINDOW_S,
+  ) {}
+  async claim(jkt: string, jti: string, now: number): Promise<boolean> {
+    if (!this.local.claim(jkt, jti, now)) return false;
+    let fresh: boolean;
+    try {
+      fresh = await this.shared(jtiReplayHash(jkt, jti), this.holdSeconds);
+    } catch (e) {
+      throw e instanceof ReplayStoreUnavailable ? e : new ReplayStoreUnavailable("replay store");
+    }
+    return fresh === true;
+  }
+}
+
+export type DpopCheck =
+  | { ok: true; jkt: string; jwk: PublicJwk }
+  | { ok: false; error: "invalid_dpop_proof" | "use_dpop_nonce" | "replay_store_unavailable" };
 
 export async function checkDpopProof(
   header: string | null,
@@ -69,7 +109,7 @@ export async function checkDpopProof(
     htu: string;
     now: number;
     checkNonce: (nonce: unknown) => Promise<boolean>;
-    replay: JtiReplayCache;
+    replay: ReplayGuard;
     /** The presented access token; its hash must be the proof's ath. Absent = ath must be absent too. */
     accessToken?: string;
   },
@@ -107,6 +147,12 @@ export async function checkDpopProof(
 
   const jkt = jwkThumbprint(jwk);
   // Recorded last, after the signature, so unsigned junk can never fill the cache.
-  if (!opts.replay.claim(jkt, jti, opts.now)) return bad;
+  let fresh: boolean;
+  try {
+    fresh = await opts.replay.claim(jkt, jti, opts.now);
+  } catch {
+    return { ok: false, error: "replay_store_unavailable" };
+  }
+  if (!fresh) return bad;
   return { ok: true, jkt, jwk };
 }

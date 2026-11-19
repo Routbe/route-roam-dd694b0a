@@ -109,6 +109,17 @@ describe("cryptographic enclave", () => {
     expect(await code("sign.attest", { key: key.slice(), envelope: envelope.slice() })).toBe("invalid_input");
   });
 
+  it("hashes a stored RSG1 envelope in the worker and wipes the transferred copy", async () => {
+    const { envelope } = await call("sign.seal", { pdf: new TextEncoder().encode("%PDF-1.7 signed copy") });
+    const expected = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", envelope.slice())), (b) => b.toString(16).padStart(2, "0")).join("");
+    const moved = envelope.slice();
+    const { sha256 } = await call("sign.envelope_sha256", { envelope: moved });
+    expect(sha256).toBe(expected);
+    expect(moved.every((x) => x === 0)).toBe(true);
+    expect(await code("sign.envelope_sha256", { envelope: new Uint8Array(0) })).toBe("invalid_input");
+    expect(await code("sign.envelope_sha256", { envelope: "not bytes" })).toBe("invalid_input");
+  });
+
   it("seals UI plaintext and wipes the transferred input", async () => {
     const plaintext = new TextEncoder().encode(JSON.stringify({ note: "hello" }));
     const sealed = await call("data.seal", { userId, aad: "test:aad", plaintext });

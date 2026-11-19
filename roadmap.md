@@ -492,7 +492,14 @@
 - [x] DATABASE_URL en BETTER_AUTH_SECRET veilig ingesteld (nooit via de chat): health-probe `operational`, schema 0294, aanmeldscherm biedt nu passkey, e-maillink en wachtwoord zonder waarschuwing
 - [ ] Bevestigen: draait deze preview op productie-Neon of op een aparte kopie (eigenaar)
 - [ ] E-mailbezorging (SMTP_PASS_AUTH / SMTP_PASS_SYSTEM), bestandsopslag (S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, emmers) en betalingen (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET) nog niet ingesteld
-- [ ] Eind-tot-eind aanmeldtest met echte passkey of e-maillink — wacht op toestemming voor één testaccount, of eigenaar test zelf
+- [x] Account aanmaken met passkey end-to-end getest op de preview (2026-11-19); opnieuw inloggen met een bestaande passkey nog niet getest
 - [ ] Dagelijkse cleanup (`/api/public/cron/cleanup-assets`) en de Omni-worker in `worker/` hebben op deze hosting nog geen uitvoerder
 
-- [ ] Owner: delete preview test account lovable-signin-test-20261119@example.com (id cd595dcb-6fb3-4826-b823-ccd452eeacb9, created 2026-11-19, live database)
+- [x] Sign page: envelope hash via crypto worker (sign.envelope_sha256) + guard test
+- [x] DPoP: dual-layer jti replay (in-memory + db/0295 dpop_jti_replays via rout_dpop_jti_claim)
+- [ ] Owner: apply db/0294 then db/0295 on Neon with scripts/migration-rollout.ts (see HANDOVER appendix 2026-11-19); Neon is at 0293
+- [x] Full vitest run 2026-11-19: 3,895 passed, 9 skipped, 0 failed
+- [x] docs/HANDOVER.md appendix + roadmap synced (code level 0295, Neon 0293)
+- [x] Deleted preview test account lovable-signin-test-20261119@example.com (2026-11-19)
+- [x] Deleted the 17 older test accounts in Neon (2026-11-19)
+- [ ] Account purge cron fails on Neon: rout_app lacks SELECT/DELETE on oauth_email_deliveries + identity_link_events (owner decision: definer helper or grant)
