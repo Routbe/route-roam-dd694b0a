@@ -492,7 +492,7 @@
 - [x] DATABASE_URL en BETTER_AUTH_SECRET veilig ingesteld (nooit via de chat): health-probe `operational`, schema 0294, aanmeldscherm biedt nu passkey, e-maillink en wachtwoord zonder waarschuwing
 - [ ] Bevestigen: draait deze preview op productie-Neon of op een aparte kopie (eigenaar)
 - [ ] E-mailbezorging (SMTP_PASS_AUTH / SMTP_PASS_SYSTEM), bestandsopslag (S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, emmers) en betalingen (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET) nog niet ingesteld
-- [ ] Eind-tot-eind aanmeldtest met echte passkey of e-maillink — wacht op toestemming voor één testaccount, of eigenaar test zelf
+- [x] Account aanmaken met passkey end-to-end getest op de preview (2026-11-19); opnieuw inloggen met een bestaande passkey nog niet getest
 - [ ] Dagelijkse cleanup (`/api/public/cron/cleanup-assets`) en de Omni-worker in `worker/` hebben op deze hosting nog geen uitvoerder
 
 - [x] Sign page: envelope hash via crypto worker (sign.envelope_sha256) + guard test
