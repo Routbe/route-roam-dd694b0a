@@ -27,7 +27,7 @@ beforeAll(async () => {
     });
   }
   await db.exec("set session_replication_role = origin;");
-  await db.query("insert into public.account_deletions (user_id, purge_after) values ($1, now() - interval '1 day')", [U]).catch(() => undefined);
+  await db.query("insert into public.account_deletions (user_id, requested_at, purge_after) values ($1, now() - interval '8 days', now() - interval '1 day')", [U]);
 }, 300_000);
 afterAll(async () => {
   await db?.close();
