@@ -147,6 +147,7 @@ import { Route as DeveloperIdentityOauthRouteImport } from './routes/developer.i
 import { Route as DeveloperWebhooksRouteImport } from './routes/developer.webhooks'
 import { Route as DiscoverIndexRouteImport } from './routes/discover.index'
 import { Route as DiscoverTopicRouteImport } from './routes/discover.$topic'
+import { Route as DocsProposalPalaisRouteImport } from './routes/docs.proposal-palais'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as EventSlugRouteImport } from './routes/event.$slug'
 import { Route as FIdRouteImport } from './routes/f.$id'
@@ -1170,6 +1171,11 @@ const DiscoverIndexRoute = DiscoverIndexRouteImport.update({
 const DiscoverTopicRoute = DiscoverTopicRouteImport.update({
   id: '/discover/$topic',
   path: '/discover/$topic',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsProposalPalaisRoute = DocsProposalPalaisRouteImport.update({
+  id: '/docs/proposal-palais',
+  path: '/docs/proposal-palais',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ESlugRoute = ESlugRouteImport.update({
@@ -3066,6 +3072,7 @@ export interface FileRoutesByFullPath {
   '/developer/identity-oauth': typeof DeveloperIdentityOauthRoute
   '/developer/webhooks': typeof DeveloperWebhooksRoute
   '/discover/$topic': typeof DiscoverTopicRoute
+  '/docs/proposal-palais': typeof DocsProposalPalaisRoute
   '/e/$slug': typeof ESlugRoute
   '/event/$slug': typeof EventSlugRoute
   '/f/$id': typeof FIdRoute
@@ -3518,6 +3525,7 @@ export interface FileRoutesByTo {
   '/developer/identity-oauth': typeof DeveloperIdentityOauthRoute
   '/developer/webhooks': typeof DeveloperWebhooksRoute
   '/discover/$topic': typeof DiscoverTopicRoute
+  '/docs/proposal-palais': typeof DocsProposalPalaisRoute
   '/e/$slug': typeof ESlugRoute
   '/event/$slug': typeof EventSlugRoute
   '/f/$id': typeof FIdRoute
@@ -3983,6 +3991,7 @@ export interface FileRoutesById {
   '/developer/identity-oauth': typeof DeveloperIdentityOauthRoute
   '/developer/webhooks': typeof DeveloperWebhooksRoute
   '/discover/$topic': typeof DiscoverTopicRoute
+  '/docs/proposal-palais': typeof DocsProposalPalaisRoute
   '/e/$slug': typeof ESlugRoute
   '/event/$slug': typeof EventSlugRoute
   '/f/$id': typeof FIdRoute
@@ -4451,6 +4460,7 @@ export interface FileRouteTypes {
     | '/developer/identity-oauth'
     | '/developer/webhooks'
     | '/discover/$topic'
+    | '/docs/proposal-palais'
     | '/e/$slug'
     | '/event/$slug'
     | '/f/$id'
@@ -4903,6 +4913,7 @@ export interface FileRouteTypes {
     | '/developer/identity-oauth'
     | '/developer/webhooks'
     | '/discover/$topic'
+    | '/docs/proposal-palais'
     | '/e/$slug'
     | '/event/$slug'
     | '/f/$id'
@@ -5367,6 +5378,7 @@ export interface FileRouteTypes {
     | '/developer/identity-oauth'
     | '/developer/webhooks'
     | '/discover/$topic'
+    | '/docs/proposal-palais'
     | '/e/$slug'
     | '/event/$slug'
     | '/f/$id'
@@ -5796,6 +5808,7 @@ export interface RootRouteChildren {
   DeveloperIdentityOauthRoute: typeof DeveloperIdentityOauthRoute
   DeveloperWebhooksRoute: typeof DeveloperWebhooksRoute
   DiscoverTopicRoute: typeof DiscoverTopicRoute
+  DocsProposalPalaisRoute: typeof DocsProposalPalaisRoute
   ESlugRoute: typeof ESlugRoute
   EventSlugRoute: typeof EventSlugRoute
   FIdRoute: typeof FIdRoute
@@ -6931,6 +6944,13 @@ declare module '@tanstack/react-router' {
       path: '/discover/$topic'
       fullPath: '/discover/$topic'
       preLoaderRoute: typeof DiscoverTopicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/proposal-palais': {
+      id: '/docs/proposal-palais'
+      path: '/docs/proposal-palais'
+      fullPath: '/docs/proposal-palais'
+      preLoaderRoute: typeof DocsProposalPalaisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/e/$slug': {
@@ -9953,6 +9973,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeveloperIdentityOauthRoute: DeveloperIdentityOauthRoute,
   DeveloperWebhooksRoute: DeveloperWebhooksRoute,
   DiscoverTopicRoute: DiscoverTopicRoute,
+  DocsProposalPalaisRoute: DocsProposalPalaisRoute,
   ESlugRoute: ESlugRoute,
   EventSlugRoute: EventSlugRoute,
   FIdRoute: FIdRoute,

@@ -1,0 +1,32 @@
+.pp-root { background: var(--muted, #f4f4f4); color: #111; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; min-height: 100vh; padding: 0 0 48px; }
+.pp-toolbar { position: sticky; top: 0; z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #e5e5e5; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+.pp-toolbar button { min-height: 44px; padding: 0 16px; border: 1px solid #111; background: #111; color: #fff; font-size: 13px; letter-spacing: 0; text-transform: none; cursor: pointer; }
+.pp-page { background: #fff; width: 210mm; max-width: 100%; min-height: 297mm; margin: 24px auto 0; padding: 20mm; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,.08); font-size: 10.5pt; line-height: 1.55; border-top: 3px solid var(--supporter-gold); }
+.pp-letterhead { display: flex; justify-content: space-between; gap: 24px; }
+.pp-sender, .pp-recipient, .pp-signature { display: flex; flex-direction: column; font-size: 9pt; line-height: 1.45; }
+.pp-sender strong { font-size: 11pt; }
+.pp-recipient { margin-top: 25mm; min-width: 85mm; }
+.pp-meta { margin: 12mm 0 8mm; font-size: 9.5pt; }
+.pp-meta div { display: grid; grid-template-columns: 24mm 1fr; gap: 4mm; }
+.pp-meta dt { font-weight: 700; } .pp-meta dd { margin: 0; }
+.pp-body p { margin: 0 0 3.5mm; text-align: justify; }
+.pp-signature { margin-top: 8mm; }
+.pp-signname { display: inline-flex; align-items: center; gap: 6px; font-size: 11pt; }
+.pp-key { margin-top: 2mm; color: #555; font-family: ui-monospace, monospace; font-size: 7.5pt; }
+.pp-page h2, .pp-sub h3 { font-family: inherit; }
+.pp-page h2 { font-size: 16pt; font-weight: 700; letter-spacing: -.01em; margin: 0 0 8mm; padding-bottom: 3mm; border-bottom: 1px solid #111; }
+.pp-sub h3 { font-size: 11pt; margin: 6mm 0 2mm; }
+.pp-sub p { margin: 0 0 3mm; text-align: justify; }
+.pp-num { color: #1d9bf0; font-variant-numeric: tabular-nums; margin-right: 2mm; }
+.pp-closing { margin-top: 14mm; display: flex; align-items: center; gap: 6px; font-size: 8.5pt; color: #555; }
+@media (max-width: 800px) { .pp-page { padding: 20px; min-height: 0; margin-top: 12px; } .pp-letterhead { flex-direction: column; } .pp-recipient { margin-top: 8px; min-width: 0; } }
+@page { size: A4 portrait; margin: 20mm 20mm 24mm; @bottom-center { content: "Vertrouwelijk / Adviesnota Koninklijk Paleis • ROUT Sovereign Identity OS (AGPL-3.0) • Pagina " counter(page) " van " counter(pages); font: 7.5pt "Helvetica Neue", Arial, sans-serif; color: #555; } }
+@media print {
+  .no-print, header.site-header, nav, footer { display: none !important; }
+  html, body, .pp-root { background: #fff !important; }
+  .pp-root { padding: 0; }
+  .pp-page { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; border-top: none; }
+  .pp-break { break-after: page; }
+  .pp-sub { break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
