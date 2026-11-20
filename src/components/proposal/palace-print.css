@@ -13,6 +13,7 @@
 .pp-signature { margin-top: 8mm; }
 .pp-signname { display: inline-flex; align-items: center; gap: 6px; font-size: 11pt; }
 .pp-key { margin-top: 2mm; color: #555; font-family: ui-monospace, monospace; font-size: 7.5pt; }
+.pp-page h2, .pp-sub h3 { font-family: inherit; }
 .pp-page h2 { font-size: 16pt; font-weight: 700; letter-spacing: -.01em; margin: 0 0 8mm; padding-bottom: 3mm; border-bottom: 1px solid #111; }
 .pp-sub h3 { font-size: 11pt; margin: 6mm 0 2mm; }
 .pp-sub p { margin: 0 0 3mm; text-align: justify; }
